@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from utils import wrapToPi
 
 # command zero velocities once we are this close to the goal
@@ -34,6 +35,24 @@ class PoseController:
         may also be useful, look up its documentation
         """
         ########## Code starts here ##########
+        # define errors in x and y position
+        x_error = self.x_g - x
+        y_error = self.y_g - y
+
+        # change coordinate system
+        rho = math.sqrt(pow(x_error,2) + pow(y_error,2))
+        alpha = wrapToPi(math.atan2(y_error, x_error) - th)
+        delta = wrapToPi(math.atan2(y_error, x_error) - self.th_g)
+
+        # command 0 velocities once we are close to the goal 
+        if (rho < RHO_THRES) and (alpha < ALPHA_THRES) and (delta < DELTA_THRES):
+            V = 0
+            om = 0
+        else:
+            # calculate V with control law
+            V = self.k1*rho*math.cos(alpha)   
+            # calculate om with control law. sinc(alpha) = sin(pi*alpha)/(pi*alpha) so sinc(alpha/pi) = sin(alpha)/alpha
+            om = self.k2*alpha + self.k1*np.sinc(alpha/np.pi)*np.cos(alpha)*(alpha+self.k3*delta)
         
         ########## Code ends here ##########
 

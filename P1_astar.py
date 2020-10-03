@@ -37,7 +37,14 @@ class AStar(object):
             Boolean True/False
         """
         ########## Code starts here ##########
-        
+        # Check bounds
+        for dim in range(len(x)):
+            if not (self.statespace_lo[dim] <= x[dim] <= self.statespace_hi[dim]):
+                return False
+
+        # Check obstacles, if it doesn't collide with the obstacles, then it's
+        # free overall. If it does collide with the obstacles then it's not free.
+        return self.occupancy.is_free(x)
         ########## Code ends here ##########
 
     def distance(self, x1, x2):
@@ -52,7 +59,7 @@ class AStar(object):
         HINT: This should take one line.
         """
         ########## Code starts here ##########
-        
+        return np.linalg.norm(np.array(x1) - np.array(x2))
         ########## Code ends here ##########
 
     def snap_to_grid(self, x):
@@ -85,7 +92,13 @@ class AStar(object):
         """
         neighbors = []
         ########## Code starts here ##########
-        
+        offset_options = [-self.resolution, 0, self.resolution]
+        for x_offset in offset_options:
+            for y_offset in offset_options:
+                if x_offset != 0 or y_offset != 0: # Exclude the current point from neighbors
+                    potential_neighbor = self.snap_to_grid((x[0] + x_offset, x[1] + y_offset))
+                    if self.is_free(potential_neighbor):
+                        neighbors.append(potential_neighbor)
         ########## Code ends here ##########
         return neighbors
 
@@ -149,7 +162,26 @@ class AStar(object):
                 set membership efficiently using the syntax "if item in set".
         """
         ########## Code starts here ##########
-        
+        while len(self.open_set) > 0:
+            x_current = self.find_best_est_cost_through()
+            if x_current == self.x_goal:
+                self.path = self.reconstruct_path()
+                return True # We've found our solution
+            self.open_set.remove(x_current)
+            self.closed_set.add(x_current)
+            for x_neigh in self.get_neighbors(x_current):
+                if x_neigh in self.closed_set:
+                    continue
+                tentative_cost_to_arrive = self.cost_to_arrive[x_current] + self.distance(x_current, x_neigh)
+                if x_neigh not in self.open_set:
+                    self.open_set.add(x_neigh)
+                elif tentative_cost_to_arrive > self.cost_to_arrive[x_neigh]:
+                    continue
+                self.came_from[x_neigh] = x_current
+                self.cost_to_arrive[x_neigh] = tentative_cost_to_arrive
+                self.est_cost_through[x_neigh] = tentative_cost_to_arrive + self.distance(x_neigh, self.x_goal)
+   
+        return False # Open set is empty, no path found
         ########## Code ends here ##########
 
 class DetOccupancyGrid2D(object):

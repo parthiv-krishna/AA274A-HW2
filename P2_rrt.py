@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import plot_line_segments, line_line_intersection
+from dubins import path_length, path_sample
 
 class RRT(object):
     """ Represents a motion planning problem to be solved using the RRT algorithm"""
@@ -10,7 +11,7 @@ class RRT(object):
         self.x_init = np.array(x_init)                  # initial state
         self.x_goal = np.array(x_goal)                  # goal state
         self.obstacles = obstacles                      # obstacle set (line segments)
-        self.path = None        # the final path as a list of states
+        self.path = None                                # the final path as a list of states
 
     def is_free_motion(self, obstacles, x1, x2):
         """
@@ -104,7 +105,36 @@ class RRT(object):
         #     are meaningful! keep this in mind when using the helper functions!
 
         ########## Code starts here ##########
-        
+        for k in range(max_iters):
+            z = np.random.uniform(0, 1)
+            if z < goal_bias: # set x_rand to goal
+                x_rand = self.x_goal
+            else: # generate a random point
+                randomx = np.random.uniform(self.statespace_lo[0], self.statespace_hi[0])
+                randomy = np.random.uniform(self.statespace_lo[1], self.statespace_hi[1])
+                if state_dim == 2:
+                    x_rand = np.array([randomx, randomy])
+                else: # x, y, th (dubins) 
+                    randomth = np.random.uniform(0, np.pi)
+                    x_rand = np.array([randomx, randomy, randomth])
+            # attach x_new, a point in the direction of x_rand, to tree
+            x_near_idx = self.find_nearest(V[0:n,:], x_rand)
+            x_near = V[x_near_idx]
+            x_new = self.steer_towards(x_near, x_rand, eps)
+
+            if self.is_free_motion(self.obstacles, x_near, x_new):
+                V[n,:] = x_new
+                P[n] = x_near_idx
+                # reconstruct path when we reach the goal
+                if np.array_equal(x_new, self.x_goal):
+                    success = True
+                    idx = n
+                    self.path = []
+                    while idx != -1: # parent of root is -1
+                        self.path.insert(0, V[idx,:])
+                        idx = P[idx] # go to parent of this node
+                    break
+                n += 1 # increment n for next iteration
         ########## Code ends here ##########
 
         plt.figure()
@@ -142,7 +172,17 @@ class RRT(object):
             None, but should modify self.path
         """
         ########## Code starts here ##########
-        
+        success = False
+        while not success:
+            success = True
+            new_path = self.path
+            for i, x in enumerate(self.path):
+                if np.array_equal(x, self.x_init) or np.array_equal(x, self.x_goal):
+                    continue # skip first and last points
+                if self.is_free_motion(self.obstacles, self.path[i-1], self.path[i+1]):
+                    new_path.pop(i) # remove the ith element from new_path
+                    success = False
+            self.path = new_path # set path to the shortened path after this iteration
         ########## Code ends here ##########
 
 class GeometricRRT(RRT):
@@ -151,16 +191,19 @@ class GeometricRRT(RRT):
     between two points is a straight line (Euclidean metric)
     """
 
+    # Euclidean distance
+    def distance(self, x1, x2):
+        return np.linalg.norm(np.array(x1) - np.array(x2))
+
     def find_nearest(self, V, x):
         ########## Code starts here ##########
-        # Hint: This should take one line.
-        
+        return np.argmin(np.apply_along_axis(self.distance, 1, V, x))
         ########## Code ends here ##########
 
     def steer_towards(self, x1, x2, eps):
         ########## Code starts here ##########
-        # Hint: This should take one line.
-        
+        # if the distance is short enough, return x2, otherwise, return a point at a distance eps along the path between x1 and x2
+        return x2 if self.distance(x1, x2) < eps else ((1-eps)*x1 + eps*x2)/self.distance(x1, x2)
         ########## Code ends here ##########
 
     def is_free_motion(self, obstacles, x1, x2):
@@ -193,10 +236,12 @@ class DubinsRRT(RRT):
         self.turning_radius = turning_radius
         super(self.__class__, self).__init__(statespace_lo, statespace_hi, x_init, x_goal, obstacles)
 
+    def distance(self, x1, x2):
+        return path_length(x1, x2, self.turning_radius)
+
     def find_nearest(self, V, x):
-        from dubins import path_length
         ########## Code starts here ##########
-        
+        return np.argmin(np.apply_along_axis(self.distance, 1, V, x))
         ########## Code ends here ##########
 
     def steer_towards(self, x1, x2, eps):
@@ -210,7 +255,8 @@ class DubinsRRT(RRT):
         distance eps (using self.turning_radius) due to numerical precision
         issues.
         """
-        
+        # if the distance is short enough, return x2, otherwise, return a point at a distance eps along the path between x1 and x2
+        return x2 if self.distance(x1, x2) < eps else np.array(path_sample(x1, x2, 1.001*self.turning_radius, eps)[0][1])
         ########## Code ends here ##########
 
     def is_free_motion(self, obstacles, x1, x2, resolution = np.pi/6):

@@ -203,7 +203,7 @@ class GeometricRRT(RRT):
     def steer_towards(self, x1, x2, eps):
         ########## Code starts here ##########
         # if the distance is short enough, return x2, otherwise, return a point at a distance eps along the path between x1 and x2
-        return x2 if self.distance(x1, x2) < eps else ((1-eps)*x1 + eps*x2)/self.distance(x1, x2)
+        return x2 if self.distance(x1, x2) < eps else ((self.distance(x1, x2)-eps)*x1 + eps*x2)/self.distance(x1, x2)
         ########## Code ends here ##########
 
     def is_free_motion(self, obstacles, x1, x2):

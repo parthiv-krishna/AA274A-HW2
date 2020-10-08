@@ -355,7 +355,7 @@ class DubinsRRTConnect(RRTConnect):
     def find_nearest_backward(self, V, x):
         ########## Code starts here ##########
         V_rev = np.apply_along_axis(self.reverse_heading, 1, V)
-        return np.argmin(np.apply_along_axis(self.distance, 1, V_rev, x))
+        return np.argmin(np.apply_along_axis(self.distance, 1, V_rev, self.reverse_heading(x)))
         ########## Code ends here ##########
 
     def steer_towards_forward(self, x1, x2, eps):

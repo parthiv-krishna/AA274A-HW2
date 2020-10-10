@@ -1,0 +1,93 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{bbm}
+\usepackage{fancyhdr}
+% \usepackage{listings}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{courier}
+\usepackage[pdftex,colorlinks=true, urlcolor = blue]{hyperref}
+\usepackage[final]{pdfpages}
+
+\oddsidemargin 0in \evensidemargin 0in
+\topmargin -0.5in \headheight 0.25in \headsep 0.25in
+\textwidth 6.5in \textheight 9in
+\parskip 6pt \parindent 0in \footskip 20pt
+
+% set the header up
+\fancyhead{}
+\fancyhead[L]{Stanford Aeronautics \& Astronautics}
+\fancyhead[R]{Fall 2020}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand\headrulewidth{0.4pt}
+\setlength\headheight{15pt}
+
+\usepackage{xparse}
+\NewDocumentCommand{\codeword}{v}{%
+\texttt{\textcolor{blue}{#1}}%
+}
+
+\usepackage{xcolor}
+\setlength{\parindent}{0in}
+
+\title{AA 274A: Principles of Robot Autonomy I \\ Problem Set 2}
+\author{Name: Parthiv Krishna     \\ SUID: 06330692}
+\date{}
+
+\begin{document}
+
+\maketitle
+\pagestyle{fancy} 
+
+\section*{Problem 1: A* Motion Planning}
+\begin{enumerate}[label=(\roman*)]
+\item Implemented \codeword{is_free}, \codeword{distance}, \codeword{get_neighbors}, and \codeword{solve} in the \codeword{Astar} class.
+\item \codeword{sim_astar.ipynb} starts on the next page. 
+
+\includepdf[pages=-]{notebooks/P1_astar.pdf}
+
+
+\end{enumerate}
+
+
+\section*{Problem 2: Rapidly-Exploring Random Trees (RRT)}
+\begin{enumerate}[label=(\roman*)]
+\item Implemented \codeword{RT.solve}, \codeword{GeometricRRT.findnearest}, and \codeword{GeometricRRT.steertowards} in \codeword{P2_rrt.py}.
+\item \codeword{sim_rrt.ipynb} starts on the next page. 
+\item Implemented \codeword{DubinsRRT.findnearest} and \codeword{DubinsRRT.steertowards} in \codeword{P2_rrt.py}.
+
+\includepdf[pages=-]{notebooks/P2_rrt.pdf}
+
+
+\end{enumerate}
+
+\section*{Problem 3: Geometric Planning to Trajectories and Control}
+\begin{enumerate}[label=(\roman*)]
+\item Implemented \codeword{compute_smoothed_traj}  in \codeword{P3_traj_planning.py}. 
+\item Implemented \codeword{modify_traj_with_limits}.
+\item Implemented \codeword{SwitchingController.compute_control}.
+\item \codeword{sim_traj_planning.ipynb} starts on the next page. 
+\includepdf[pages=-]{notebooks/P3_traj_planning.pdf}
+
+
+\end{enumerate}
+
+\section*{Extra Problem: Bi-Directional Sampling-based Motion Planning}
+\begin{enumerate}[label=(\roman*)]
+\item Implemented \codeword{RRTConnect.solve}, and the \codeword{GeometricRRTConnect} class functions \codeword{find_nearest_forward} and \codeword{steer_towards_forward} in \codeword{P4_bidirectional_rrt.py}. 
+\item Implemented the \codeword{DubinsRRTConnect} class functions \codeword{find_nearest_forward}, \codeword{find_nearest_backward} , \codeword{steer_towards_forward}, and \codeword{steer_towards_backward}.
+\item \codeword{sim_traj_planning.ipynb} starts on the next page. 
+\includepdf[pages=-]{notebooks/P4_bidirectional_rrt.pdf}
+
+
+\end{enumerate}
+
+
+
+
+\end{document}
